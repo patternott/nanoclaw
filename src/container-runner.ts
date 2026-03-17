@@ -93,6 +93,16 @@ function buildVolumeMounts(
       containerPath: '/workspace/group',
       readonly: false,
     });
+
+    // Global memory directory (read-write for main)
+    const globalDirMain = path.join(GROUPS_DIR, 'global');
+    if (fs.existsSync(globalDirMain)) {
+      mounts.push({
+        hostPath: globalDirMain,
+        containerPath: '/workspace/global',
+        readonly: false,
+      });
+    }
   } else {
     // Other groups only get their own folder
     mounts.push({
