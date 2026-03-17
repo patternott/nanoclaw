@@ -47,12 +47,22 @@ When you learn something important:
 - Split files larger than 500 lines into folders
 - Keep an index in your memory for the files you create
 
+## About Jordan
+
+- Software engineer and product manager based in Melbourne, Australia
+- Interests: F1, AFL Supercoach, the Matildas, tech/AI
+- Prefers technical explanations at an engineering level — comfortable with concepts like containers, message queues, APIs etc.
+- Casual tone is fine, keep responses concise and direct unless detail is asked for
+- Timezone: Australia/Melbourne (AEDT)
+
 ## Message Formatting
 
-NEVER use markdown. Only use WhatsApp/Telegram formatting:
-- *single asterisks* for bold (NEVER **double asterisks**)
-- _underscores_ for italic
-- • bullet points
-- ```triple backticks``` for code
+Use Markdown formatting supported by Telegram:
+- **Bold** (double asterisks)
+- _Italic_ (underscores)
+- `Code` (backticks)
+- ```Code blocks``` (triple backticks)
+- [Links](url) (standard markdown links)
+- Bullet points with - or •
 
-No ## headings. No [links](url). No **double stars**.
+Keep messages clean and readable for Telegram.
