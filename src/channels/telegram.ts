@@ -2,6 +2,7 @@ import https from 'https';
 import { Api, Bot } from 'grammy';
 
 import { ASSISTANT_NAME, TRIGGER_PATTERN } from '../config.js';
+import { getLatestMessage } from '../db.js';
 import { readEnvFile } from '../env.js';
 import { logger } from '../logger.js';
 import { registerChannel, ChannelOpts } from './registry.js';
@@ -81,9 +82,6 @@ export class TelegramChannel implements Channel {
     });
 
     this.bot.on('message:text', async (ctx) => {
-      // Skip commands
-      if (ctx.message.text.startsWith('/')) return;
-
       const chatJid = `tg:${ctx.chat.id}`;
       let content = ctx.message.text;
       const timestamp = new Date(ctx.message.date * 1000).toISOString();
@@ -283,6 +281,39 @@ export class TelegramChannel implements Channel {
     } catch (err) {
       logger.debug({ jid, err }, 'Failed to send Telegram typing indicator');
     }
+  }
+
+  async sendReaction(
+    chatJid: string,
+    messageKey: { id: string; remoteJid: string; fromMe?: boolean },
+    emoji: string,
+  ): Promise<void> {
+    if (!this.bot) return;
+    const numericId = chatJid.replace(/^tg:/, '');
+    const messageId = parseInt(messageKey.id, 10);
+    if (isNaN(messageId)) {
+      logger.warn({ chatJid, messageKey }, 'Invalid message ID for Telegram reaction');
+      return;
+    }
+    try {
+      await this.bot.api.setMessageReaction(
+        numericId,
+        messageId,
+        emoji ? [{ type: 'emoji' as const, emoji: emoji as any }] : [],
+      );
+      logger.info({ chatJid, emoji }, 'Telegram reaction sent');
+    } catch (err) {
+      logger.error({ chatJid, emoji, err }, 'Failed to send Telegram reaction');
+    }
+  }
+
+  async reactToLatestMessage(chatJid: string, emoji: string): Promise<void> {
+    const latest = getLatestMessage(chatJid);
+    if (!latest) {
+      logger.warn({ chatJid }, 'No latest message found for Telegram reaction');
+      return;
+    }
+    await this.sendReaction(chatJid, { id: latest.id, remoteJid: chatJid, fromMe: latest.fromMe }, emoji);
   }
 }
 
