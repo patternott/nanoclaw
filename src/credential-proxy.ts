@@ -48,7 +48,9 @@ const CREDENTIALS_PATH = join(homedir(), '.claude', '.credentials.json');
 /** Reads and parses ~/.claude/.credentials.json. Returns undefined on any error. */
 export function readClaudeCredentials(): ClaudeCredentialsFile | undefined {
   try {
-    return JSON.parse(readFileSync(CREDENTIALS_PATH, 'utf8')) as ClaudeCredentialsFile;
+    return JSON.parse(
+      readFileSync(CREDENTIALS_PATH, 'utf8'),
+    ) as ClaudeCredentialsFile;
   } catch {
     return undefined;
   }
@@ -99,7 +101,10 @@ export async function refreshOAuthToken(): Promise<void> {
               expires_in?: number;
             };
             if (!data.access_token) {
-              logger.error({ status: res.statusCode }, 'refreshOAuthToken: no access_token in response');
+              logger.error(
+                { status: res.statusCode },
+                'refreshOAuthToken: no access_token in response',
+              );
               return resolve();
             }
             const updated: ClaudeCredentialsFile = {
@@ -111,10 +116,15 @@ export async function refreshOAuthToken(): Promise<void> {
                 expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000,
               },
             };
-            writeFileSync(CREDENTIALS_PATH, JSON.stringify(updated, null, 2), { mode: 0o600 });
+            writeFileSync(CREDENTIALS_PATH, JSON.stringify(updated, null, 2), {
+              mode: 0o600,
+            });
             logger.info('refreshOAuthToken: token refreshed successfully');
           } catch (err) {
-            logger.error({ err }, 'refreshOAuthToken: failed to parse response');
+            logger.error(
+              { err },
+              'refreshOAuthToken: failed to parse response',
+            );
           }
           resolve();
         });
@@ -135,7 +145,9 @@ export function startOAuthRefreshTimer(): void {
     const creds = readClaudeCredentials();
     const expiresAt = creds?.claudeAiOauth?.expiresAt;
     if (expiresAt && Date.now() >= expiresAt - REFRESH_BUFFER_MS) {
-      refreshOAuthToken().catch((err) => logger.error({ err }, 'startOAuthRefreshTimer: refresh error'));
+      refreshOAuthToken().catch((err) =>
+        logger.error({ err }, 'startOAuthRefreshTimer: refresh error'),
+      );
     }
   };
 
@@ -252,7 +264,10 @@ export function detectAuthMode(): AuthMode {
 
 /** Returns true if any OAuth credential source is available. */
 export function hasOAuthCredentials(): boolean {
-  const secrets = readEnvFile(['CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_AUTH_TOKEN']);
+  const secrets = readEnvFile([
+    'CLAUDE_CODE_OAUTH_TOKEN',
+    'ANTHROPIC_AUTH_TOKEN',
+  ]);
   return !!(
     secrets.CLAUDE_CODE_OAUTH_TOKEN ||
     secrets.ANTHROPIC_AUTH_TOKEN ||
