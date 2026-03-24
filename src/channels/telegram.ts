@@ -81,7 +81,16 @@ export class TelegramChannel implements Channel {
       ctx.reply(`${ASSISTANT_NAME} is online.`);
     });
 
+    // Telegram bot commands handled above — skip them in the general handler
+    // so they don't also get stored as messages. All other /commands flow through.
+    const TELEGRAM_BOT_COMMANDS = new Set(['chatid', 'ping']);
+
     this.bot.on('message:text', async (ctx) => {
+      if (ctx.message.text.startsWith('/')) {
+        const cmd = ctx.message.text.slice(1).split(/[\s@]/)[0].toLowerCase();
+        if (TELEGRAM_BOT_COMMANDS.has(cmd)) return;
+      }
+
       const chatJid = `tg:${ctx.chat.id}`;
       let content = ctx.message.text;
       const timestamp = new Date(ctx.message.date * 1000).toISOString();
@@ -206,6 +215,42 @@ export class TelegramChannel implements Channel {
     this.bot.on('message:location', (ctx) => storeNonText(ctx, '[Location]'));
     this.bot.on('message:contact', (ctx) => storeNonText(ctx, '[Contact]'));
 
+    // Incoming reactions — trigger agent with structured message
+    this.bot.on('message_reaction', async (ctx) => {
+      const update = ctx.messageReaction;
+      if (!update) return;
+
+      const chatJid = `tg:${update.chat.id}`;
+      if (!this.opts.registeredGroups()[chatJid]) return;
+
+      // Only handle added emoji reactions; ignore removals and custom emoji
+      const newEmoji = (update.new_reaction || [])
+        .filter((r: any) => r.type === 'emoji')
+        .map((r: any) => r.emoji as string)
+        .join('');
+      if (!newEmoji) return;
+
+      const senderName =
+        update.user?.first_name || update.user?.username || 'Unknown';
+      const timestamp = new Date(update.date * 1000).toISOString();
+
+      this.opts.onMessage(chatJid, {
+        id: `reaction-${update.message_id}-${Date.now()}`,
+        chat_jid: chatJid,
+        sender: update.user?.id?.toString() || '',
+        sender_name: senderName,
+        content: JSON.stringify({
+          _type: 'message_reaction',
+          emoji: newEmoji,
+          message_id: update.message_id,
+          from_name: senderName,
+        }),
+        timestamp,
+        is_from_me: false,
+        is_bot_message: false,
+      });
+    });
+
     // Handle errors gracefully
     this.bot.catch((err) => {
       logger.error({ err: err.message }, 'Telegram bot error');
@@ -214,6 +259,7 @@ export class TelegramChannel implements Channel {
     // Start polling — returns a Promise that resolves when started
     return new Promise<void>((resolve) => {
       this.bot!.start({
+        allowed_updates: ['message', 'message_reaction'] as any,
         onStart: (botInfo) => {
           logger.info(
             { username: botInfo.username, id: botInfo.id },
