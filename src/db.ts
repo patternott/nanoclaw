@@ -221,6 +221,23 @@ export interface ChatInfo {
 }
 
 /**
+ * Get the most recent non-bot message in a chat.
+ */
+export function getLatestMessage(
+  chatJid: string,
+): { id: string; fromMe: boolean } | undefined {
+  const row = db
+    .prepare(
+      `SELECT id, is_from_me FROM messages
+       WHERE chat_jid = ? AND is_bot_message = 0
+       ORDER BY timestamp DESC LIMIT 1`,
+    )
+    .get(chatJid) as { id: string; is_from_me: number } | undefined;
+  if (!row) return undefined;
+  return { id: row.id, fromMe: row.is_from_me === 1 };
+}
+
+/**
  * Get all known chats, ordered by most recent activity.
  */
 export function getAllChats(): ChatInfo[] {
