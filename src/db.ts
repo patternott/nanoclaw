@@ -220,6 +220,7 @@ export interface ChatInfo {
   is_group: number;
 }
 
+
 /**
  * Get the most recent non-bot message in a chat.
  */

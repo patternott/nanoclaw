@@ -91,7 +91,11 @@ export interface Channel {
   // Optional: sync group/chat names from the platform.
   syncGroups?(force: boolean): Promise<void>;
   // Optional: send an emoji reaction to a specific message.
-  sendReaction?(chatJid: string, messageKey: { id: string; remoteJid: string; fromMe?: boolean }, emoji: string): Promise<void>;
+  sendReaction?(
+    chatJid: string,
+    messageKey: { id: string; remoteJid: string; fromMe?: boolean },
+    emoji: string,
+  ): Promise<void>;
   // Optional: react to the most recent message in a chat.
   reactToLatestMessage?(chatJid: string, emoji: string): Promise<void>;
 }

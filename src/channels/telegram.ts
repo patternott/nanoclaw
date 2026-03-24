@@ -338,7 +338,10 @@ export class TelegramChannel implements Channel {
     const numericId = chatJid.replace(/^tg:/, '');
     const messageId = parseInt(messageKey.id, 10);
     if (isNaN(messageId)) {
-      logger.warn({ chatJid, messageKey }, 'Invalid message ID for Telegram reaction');
+      logger.warn(
+        { chatJid, messageKey },
+        'Invalid message ID for Telegram reaction',
+      );
       return;
     }
     try {
@@ -359,7 +362,11 @@ export class TelegramChannel implements Channel {
       logger.warn({ chatJid }, 'No latest message found for Telegram reaction');
       return;
     }
-    await this.sendReaction(chatJid, { id: latest.id, remoteJid: chatJid, fromMe: latest.fromMe }, emoji);
+    await this.sendReaction(
+      chatJid,
+      { id: latest.id, remoteJid: chatJid, fromMe: latest.fromMe },
+      emoji,
+    );
   }
 }
 

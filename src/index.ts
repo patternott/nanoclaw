@@ -691,7 +691,8 @@ async function main(): Promise<void> {
     sendReaction: async (jid, messageKey, emoji) => {
       const channel = findChannel(channels, jid);
       if (!channel) throw new Error(`No channel for JID: ${jid}`);
-      if (channel.sendReaction) return channel.sendReaction(jid, messageKey, emoji);
+      if (channel.sendReaction)
+        return channel.sendReaction(jid, messageKey, emoji);
     },
     registeredGroups: () => registeredGroups,
     registerGroup,
